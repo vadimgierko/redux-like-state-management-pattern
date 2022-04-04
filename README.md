@@ -1,70 +1,170 @@
-# Getting Started with Create React App
+# How to apply/use Redux-like state management pattern using React Context API & useReducer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+---
 
-## Available Scripts
+## Create a folder named "store" in "src" folder.
 
-In the project directory, you can run:
+## Inside "store" folder create a file named "initState.js" & define your initial state.
 
-### `npm start`
+In our example todo app, we need to store only our todos in INIT_STATE, which is a JavaScript object:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+// initState.js file
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+export const INIT_STATE = {
+  todos: null,
+};
+```
 
-### `npm test`
+## Inside "store" folder create a file named "reducer.js".
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+In reducer function we define all CRUD actions:
 
-### `npm run build`
+```
+import { INIT_STATE } from "./initState";
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+export default function reducer(state, action) {
+  switch (action.type) {
+    case "add-todo":
+      return {
+        ...state,
+        todos: {
+          ...state.todos,
+          [action.payload.id]: action.payload.todo
+        }
+      };
+    case "update-todo":
+      return {
+        ...state,
+        todos: {
+          ...state.todos,
+          [action.payload.id]: action.payload.todo
+        }
+      };
+    case "delete-todo":
+      let updatedTodos = { ...state.todos };
+      if (updatedTodos[action.payload.id]) {
+        delete updatedTodos[action.payload.id];
+      }
+      return {
+        ...state,
+        todos: updatedTodos
+      };
+    case "reset-state":
+      return INIT_STATE;
+    default:
+      return state;
+  }
+}
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Inside "store" folder create a file named "Store.js" & paste the code below:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+import { createContext, useContext, useReducer } from "react";
+import reducer from "./reducer.js";
+import { INIT_STATE } from "./initState.js";
 
-### `npm run eject`
+const StoreContext = createContext();
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+export const useStore = () => useContext(StoreContext);
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+export function StoreProvider({ children }) {
+	const [state, dispatch] = useReducer(reducer, INIT_STATE);
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+	const value = {
+		state,
+		dispatch,
+	};
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+	return (
+		<StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+	);
+}
 
-## Learn More
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Wrap your `<App />` component into `<StoreProvider>` in index.js file
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+At first you need to import StoreProvider from "./store/Store", then wrap your `<App />` component into `<StoreProvider>`:
 
-### Code Splitting
+```
+// index.js file
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import { StoreProvider } from "./store/Store";
 
-### Analyzing the Bundle Size
+ReactDOM.render(
+	<React.StrictMode>
+		<StoreProvider>
+			<App />
+		</StoreProvider>
+	</React.StrictMode>,
+	document.getElementById("root")
+);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
 
-### Making a Progressive Web App
+## Create a folder named "logic" & define CRUD logic for your app
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Inside a new created folder named "logic" create a few separate files:
+- addTodo.js
+- updateTodo.js
+- deleteTodo.js
 
-### Advanced Configuration
+& paste the code below into those files:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```
+// addTodo.js file
 
-### Deployment
+import uniqid from "uniqid";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+export default function addTodo(todo, dispatch) {
+	const id = uniqid();
 
-### `npm run build` fails to minify
+	return dispatch({
+		type: "add-todo",
+		payload: {
+			id: id,
+			todo: todo,
+		},
+	});
+}
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+// updateTodo.js file
+
+export default function updateTodo(id, updatedTodo, dispatch) {
+	return dispatch({
+		type: "update-todo",
+		payload: {
+			id: id,
+			todo: updatedTodo,
+		},
+	});
+}
+```
+
+```
+// deleteTodo.js file
+
+export default function deleteTodo(id, dispatch) {
+	return dispatch({
+		type: "delete-todo",
+		payload: {
+			id: id,
+		},
+	});
+}
+
+```
+
+## Now you can create a `<Todo /> component & use CRUD functions from "logic" folder
+
+```
+// Todo.js file
+```
+
