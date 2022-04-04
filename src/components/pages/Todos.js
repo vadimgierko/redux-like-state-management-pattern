@@ -4,18 +4,24 @@ import { useStore } from "../../store/Store";
 import addTodo from "../../logic/addTodo";
 import updateTodo from "../../logic/updateTodo";
 import deleteTodo from "../../logic/deleteTodo";
-//================================================
-import Todo from "../organisms/Todo";
-import EditionScreen from "../organisms/EditionScreen";
 
 export default function Todos() {
 	const { state, dispatch } = useStore();
 	const [inputValue, setInputValue] = useState("");
 	const [idForEdition, setIdForEdition] = useState();
+	const [editedValue, setEditedValue] = useState("");
 
 	function resetInput() {
 		setInputValue("");
 	}
+
+	useEffect(() => {
+		if (idForEdition) {
+			setEditedValue(state.todos[idForEdition]);
+		} else {
+			setEditedValue("");
+		}
+	}, [idForEdition, state.todos]);
 
 	useEffect(() => {
 		console.log("app state:", state);
@@ -32,8 +38,12 @@ export default function Todos() {
 			<button
 				type="button"
 				onClick={() => {
-					addTodo(inputValue, dispatch);
-					resetInput();
+					if (inputValue.length) {
+						addTodo(inputValue, dispatch);
+						resetInput();
+					} else {
+						alert("You cannot add an empty todo! Type something!");
+					}
 				}}
 			>
 				add todo
@@ -43,26 +53,42 @@ export default function Todos() {
 					Object.keys(state.todos).map((key) => (
 						<li key={key} style={{ marginBottom: "1em" }}>
 							{idForEdition && idForEdition === key ? (
-								<EditionScreen
-									todoForEdition={state.todos[key]}
-									onUpdate={(updatedTodo) => {
-										updateTodo(key, updatedTodo, dispatch);
-										setIdForEdition();
-									}}
-									onCancel={() => setIdForEdition()}
-									onDelete={() => {
-										deleteTodo(key, dispatch);
-									}}
-								/>
+								<>
+									<input
+										value={editedValue}
+										placeholder="update todo"
+										onChange={(e) => setEditedValue(e.target.value)}
+									/>
+									<button
+										type="button"
+										onClick={() => {
+											if (editedValue.length) {
+												updateTodo(key, editedValue, dispatch);
+												setIdForEdition();
+											} else {
+												alert(
+													"You cannot update an empty todo! Type something!"
+												);
+											}
+										}}
+									>
+										update
+									</button>
+									<button type="button" onClick={() => setIdForEdition()}>
+										cancel
+									</button>
+								</>
 							) : (
-								<Todo
-									todo={state.todos[key]}
-									onDelete={() => {
-										deleteTodo(key, dispatch);
-									}}
-									onEdit={() => setIdForEdition(key)}
-								/>
+								<>
+									<span style={{ marginRight: "1em" }}>{state.todos[key]}</span>
+									<button type="button" onClick={() => setIdForEdition(key)}>
+										edit
+									</button>
+								</>
 							)}
+							<button type="button" onClick={() => deleteTodo(key, dispatch)}>
+								delete
+							</button>
 						</li>
 					))}
 			</ul>
