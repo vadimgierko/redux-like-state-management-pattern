@@ -1,6 +1,7 @@
 # Redux-like state management pattern. How to manage global state in React apps using Context API & useReducer
 
 In this guide we will build a simple todo app and apply my favourite way of managing React app's state using React Context API & useReducer hook.
+You can see & play with the completed app here: https://codesandbox.io/s/redux-like-state-management-pattern-in-react-118eg.
 
 ## What is Redux-like state management pattern?
 
