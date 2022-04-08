@@ -1,7 +1,6 @@
 # Redux-like state management pattern. How to manage global state in React apps using Context API & useReducer
 
 In this guide we will build a simple todo app and apply my favourite way of managing React app's state using React Context API & useReducer hook.
-You can see & play with the completed app here: https://codesandbox.io/s/redux-like-state-management-pattern-in-react-118eg.
 
 ## What is Redux-like state management pattern?
 
@@ -175,13 +174,122 @@ ReactDOM.render(
 
 **And that's the end of the first part!** We've finished implementing Redux-like state management pattern in our app. Now the state can be available for any component in our app. In the second part we'll see, how to import the state to the component.
 
-## Part II. Connect the store to the app's components
+## Part II. Create a `<Todos />` component & connect it to the store
 
-Ok, so now we have our store all set and finally we can connect it to our app's component.
+Ok, so now we have our store all set and finally we can connect it to our app's component. To do this we need to:
 
-### Create a folder named "logic" & define CRUD logic for your app
+- create a `<Todos />` component (UI),
+- define a component's CRUD logic in separate files in "logic" folder (I prefer to extract the logic from the UI),
+- connect CRUD functions to `<Todos />` "add", "edit", "update", "delete" & "cancel" buttons.
 
-Inside a new created folder named "logic" create a few separate files:
+Let's start from UI!
+
+### Create a `<Todos />` component (only UI, without logic)
+
+Our `<Todos />` component will be the main component of the app. Usually I prefer to split these kind of components into smaller subcomponents, but I've decided not to do this in this tutorial for simplicity & for focusing on applying the pattern.
+
+`<Todos />` component consists:
+
+- a title ("Your Todos"),
+- an input & "add todo" button for adding new todos,
+- a list of todos
+  - each todo in the list has its title (name), "edit" & "delete" button,
+- when "edit" button is clicked, the edition input is created in a place of a previous todo & "update" & "cancel" buttons appear next to the input.
+
+The code for the component for the moment looks like the code below. Note that all the buttons triggers no logic onClick, because we've not defined it yet.
+
+I've created Todo.js file in components/pages/Todo.js according to the Atomic Design methodology.
+
+```
+// Todo.js file (before importing useStore hook & logic)
+
+import { useEffect, useState } from "react";
+
+export default function Todos() {
+  // for todo input:
+  const [inputValue, setInputValue] = useState("");
+  // for todo edition input:
+  const [idForEdition, setIdForEdition] = useState();
+  const [editedValue, setEditedValue] = useState("");
+
+  function resetInput() {
+    setInputValue("");
+  }
+
+  useEffect(() => {
+    // when todo is chosen for edition
+    // set its input value according to its id:
+    if (idForEdition) {
+      setEditedValue(state.todos[idForEdition]);
+    } else {
+      setEditedValue("");
+    }
+  }, [idForEdition, state.todos]);
+
+  return (
+    <div className="todo-page" style={{ textAlign: "center" }}>
+      <h1>Your Todos</h1>
+      <input
+        value={inputValue}
+        placeholder="add todo"
+        onChange={(e) => setInputValue(e.target.value)}
+      />
+      <button
+        type="button"
+        onClick={() => console.log("new todo:", inputValue)}
+      >
+        add todo
+      </button>
+
+      {/* the list below is shown when there are some todos in the state,
+      but we haven't connect our component to the store yet */}
+
+      <ul className="todo-list" style={{ listStyle: "none", paddingLeft: 0 }}>
+        {state.todos &&
+          Object.keys(state.todos).map((key) => (
+            <li key={key} style={{ marginBottom: "1em" }}>
+              {idForEdition && idForEdition === key ? (
+                <>
+                  <input
+                    value={editedValue}
+                    placeholder="update todo"
+                    onChange={(e) => setEditedValue(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => console.log("updated todo:", editedValue)}
+                  >
+                    update
+                  </button>
+                  <button type="button" onClick={() => setIdForEdition()}>
+                    cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span style={{ marginRight: "1em" }}>{state.todos[key]}</span>
+                  <button type="button" onClick={() => console.log("edit me!")}>
+                    edit
+                  </button>
+                </>
+              )}
+              <button type="button" onClick={() => console.log("delete me!"}>
+                delete
+              </button>
+            </li>
+          ))}
+      </ul>
+    </div>
+  );
+}
+
+```
+
+### Define app logic in separated files
+
+As I mentioned before, I prefer to separate logic from UI, so we will not define CRUD functions/ methods inside `<Todos />` component, but we will do it outside in separate files inside "logic" folder.
+
+So create a new folder named "logic" in "src" folder & create the files mentioned below inside that folder:
 
 - addTodo.js
 - updateTodo.js
@@ -192,18 +300,21 @@ Inside a new created folder named "logic" create a few separate files:
 ```
 // addTodo.js file
 
+// the library imported below is needed to create a unique id for every todo:
 import uniqid from "uniqid";
 
 export default function addTodo(todo, dispatch) {
-	const id = uniqid();
-
-	return dispatch({
-		type: "add-todo",
-		payload: {
-			id: id,
-			todo: todo,
-		},
-	});
+  // create a unique id for a new todo:
+  const id = uniqid();
+  // return dispatch function with the type "add-todo"
+  // and todo's id & todo itself in payload:
+  return dispatch({
+    type: "add-todo",
+    payload: {
+      id: id,
+      todo: todo
+    }
+  });
 }
 ```
 
@@ -235,23 +346,36 @@ export default function deleteTodo(id, dispatch) {
 
 ```
 
-### Create a <Todo /> component
+You may noticed that each function from above code examples recieves a dispatch via argument. This is needed to trigger changes via reducer we've defined earlier.
 
-Now you can create a `<Todo />` component & use all of CRUD functions from "logic" folder there.
+### Import & connect logic & state + dispatch from store to the `<Todo />` component
+
+Now, when we have our component logic defined, we can import it to our `<Todo />` component & assign these CRUD functions to the certain buttons.
+
+Also we will import our global store to have access to the app state & dispatch.
+
+The complete code of `<Todo />` component will look like the code below:
 
 ```
-// Todo.js file
+// Todo.js file (completed)
 
 import { useEffect, useState } from "react";
+
+// import useStore custom hook to have the access to the state & dispatch:
 import { useStore } from "../../store/Store";
+
 // import CRUD functions from "logic" folder here:
 import addTodo from "../../logic/addTodo";
 import updateTodo from "../../logic/updateTodo";
 import deleteTodo from "../../logic/deleteTodo";
 
 export default function Todos() {
+  // here you have the access to the global state
+  // and dispatch function you'll pass to CRUD functions
   const { state, dispatch } = useStore();
+  // for todo input:
   const [inputValue, setInputValue] = useState("");
+  // for todo edition input:
   const [idForEdition, setIdForEdition] = useState();
   const [editedValue, setEditedValue] = useState("");
 
@@ -260,6 +384,8 @@ export default function Todos() {
   }
 
   useEffect(() => {
+    // when todo is chosen for edition
+    // set its input value according to its id:
     if (idForEdition) {
       setEditedValue(state.todos[idForEdition]);
     } else {
@@ -267,6 +393,7 @@ export default function Todos() {
     }
   }, [idForEdition, state.todos]);
 
+  // log app state into console after every state change:
   useEffect(() => {
     console.log("app state:", state);
   }, [state]);
@@ -283,6 +410,7 @@ export default function Todos() {
         type="button"
         onClick={() => {
           if (inputValue.length) {
+            //========== crud logic goes here ===>
             addTodo(inputValue, dispatch);
             resetInput();
           } else {
@@ -307,6 +435,7 @@ export default function Todos() {
                     type="button"
                     onClick={() => {
                       if (editedValue.length) {
+                        //========== crud logic goes here ===>
                         updateTodo(key, editedValue, dispatch);
                         setIdForEdition();
                       } else {
@@ -330,7 +459,13 @@ export default function Todos() {
                   </button>
                 </>
               )}
-              <button type="button" onClick={() => deleteTodo(key, dispatch)}>
+              <button
+                type="button"
+                onClick={() => {
+                  //========== crud logic goes here ===>
+                  deleteTodo(key, dispatch);
+                }}
+              >
                 delete
               </button>
             </li>
@@ -341,3 +476,18 @@ export default function Todos() {
 }
 
 ```
+
+## What's next? Let's handle some async actions!
+
+Congratulations! We've build a simple todo app using Redux-like pattern & now we can use this pattern in any React app the same way.
+
+But... in this example/ tutorial we've build only a sync application. We don't need to handle any async actions (for example fetching or sending data to database) in our app at the moment.
+
+But I want to show you that Redux-like pattern works perfectly with async real-world actions and we don't need to use any external libraries, like Thunk in Redux. And that's beautiful!
+
+Here will be the link to the next tutorial/s (they are in process):
+
+- the one will cover handling async local storage actions (simulation of a database),
+- the second one will cover full Firebase realtime database integration.
+
+Happy coding!
