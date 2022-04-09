@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
+
+// import useStore custom hook to have the access to the state & dispatch:
 import { useStore } from "../../store/Store";
+
 // import CRUD functions from "logic" folder here:
-import addTodo from "../../logic/addTodo";
-import updateTodo from "../../logic/updateTodo";
-import deleteTodo from "../../logic/deleteTodo";
+import addTodo from "../../logic/todos-crud/addTodo";
+import updateTodo from "../../logic/todos-crud/updateTodo";
+import deleteTodo from "../../logic/todos-crud/deleteTodo";
 
 export default function Todos() {
+	// here you have the access to the global state
+	// and dispatch function you'll pass to CRUD functions
 	const { state, dispatch } = useStore();
+	// for todo input:
 	const [inputValue, setInputValue] = useState("");
+	// for todo edition input:
 	const [idForEdition, setIdForEdition] = useState();
 	const [editedValue, setEditedValue] = useState("");
 
@@ -16,6 +23,8 @@ export default function Todos() {
 	}
 
 	useEffect(() => {
+		// when todo is chosen for edition
+		// set its input value according to its id:
 		if (idForEdition) {
 			setEditedValue(state.todos[idForEdition]);
 		} else {
@@ -23,6 +32,7 @@ export default function Todos() {
 		}
 	}, [idForEdition, state.todos]);
 
+	// log app state into console after every state change:
 	useEffect(() => {
 		console.log("app state:", state);
 	}, [state]);
@@ -39,6 +49,7 @@ export default function Todos() {
 				type="button"
 				onClick={() => {
 					if (inputValue.length) {
+						//========== crud logic goes here ===>
 						addTodo(inputValue, dispatch);
 						resetInput();
 					} else {
@@ -63,6 +74,7 @@ export default function Todos() {
 										type="button"
 										onClick={() => {
 											if (editedValue.length) {
+												//========== crud logic goes here ===>
 												updateTodo(key, editedValue, dispatch);
 												setIdForEdition();
 											} else {
@@ -86,7 +98,13 @@ export default function Todos() {
 									</button>
 								</>
 							)}
-							<button type="button" onClick={() => deleteTodo(key, dispatch)}>
+							<button
+								type="button"
+								onClick={() => {
+									//========== crud logic goes here ===>
+									deleteTodo(key, dispatch);
+								}}
+							>
 								delete
 							</button>
 						</li>

@@ -28,6 +28,8 @@ On other hand, even if you've never used Redux, React Context API or useReducer 
 
 ## Get started! Part I. Set up app store
 
+Before you got started, you can check the complete working app's codesandbox here: https://codesandbox.io/s/redux-like-state-management-pattern-in-react-118eg & play with code!
+
 Now we are going to create:
 
 - a global store for our app state
@@ -483,11 +485,33 @@ Congratulations! We've build a simple todo app using Redux-like pattern & now we
 
 But... in this example/ tutorial we've build only a sync application. We don't need to handle any async actions (for example fetching or sending data to database) in our app at the moment.
 
-But I want to show you that Redux-like pattern works perfectly with async real-world actions and we don't need to use any external libraries, like Thunk in Redux. And that's beautiful!
+But in a real-world applications we would deal with async JavaScript, for example when fetching data from database. So now I wanna show you that Redux-like pattern works perfectly with async JS and we don't need to use any external libraries, like Thunk in Redux. And that's beautiful!
 
-Here will be the link to the next tutorial/s (they are in process):
+So if you want to handle some async functions, you should handle this in app logic, like in example below:
 
-- the one will cover handling async local storage actions (simulation of a database),
-- the second one will cover full Firebase realtime database integration.
+```
+// addTodo.js file
 
-Happy coding!
+import uniqid from "uniqid";
+
+export default function addTodo(todo, dispatch) {
+  // create a unique id for a new todo:
+  const id = uniqid();
+
+  // return a async function (in our example *addTodoToDatabase()*)
+  // & then return a dispatch function
+  return addTodoToDatabase(todo, id)
+          .then(() => {
+            dispatch({
+              type: "add-todo",
+              payload: {
+                id: id,
+                todo: todo
+              }
+            });
+          })
+```
+
+Remember to dispatch changes in state only when async functions will succeed - thank to that your app state will be always in sync with external database.
+
+Happy Coding!
