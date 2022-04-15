@@ -17,7 +17,7 @@ export default function Footer() {
 			<p>
 				Click here to see the{" "}
 				<a
-					href="https://github.com/vadimgierko/redux-like-state-management-pattern#how-to-applyuse-redux-like-state-management-pattern-using-react-context-api--usereducer"
+					href="https://github.com/vadimgierko/redux-like-state-management-pattern#readme"
 					target="_blank"
 					rel="noreferrer"
 				>
@@ -28,7 +28,7 @@ export default function Footer() {
 			<p>
 				Click here to{" "}
 				<a
-					href="https://codesandbox.io/s/redux-like-state-management-pattern-in-react-118eg"
+					href="https://codesandbox.io/s/react-context-usereducer-redux-like-state-management-pattern-l7tpm2"
 					target="_blank"
 					rel="noreferrer"
 				>
@@ -44,6 +44,18 @@ export default function Footer() {
 					rel="noreferrer"
 				>
 					repository code on GitHub
+				</a>
+				.
+			</p>
+			<p>
+				Click here to see the{" "}
+				<a
+					href="https://github.com/vadimgierko/async-redux-like-state-management-pattern-in-react#readme"
+					target="_blank"
+					rel="noreferrer"
+				>
+					extended tutorial about async Redux-like pattern in React connected to
+					Firebase
 				</a>
 				.
 			</p>

@@ -1,6 +1,10 @@
-# Redux-like state management pattern. How to manage global state in React apps using Context API & useReducer
+# Redux-like state management pattern in React. Tutorial about how to manage global state in React apps using Context API & useReducer hook
+
+## What we will build in this tutorial
 
 In this guide we will build a simple todo app and apply my favourite way of managing React app's state using React Context API & useReducer hook.
+
+You can see (and play with) the code of completed app here: https://codesandbox.io/s/react-context-usereducer-redux-like-state-management-pattern-l7tpm2.
 
 ## What is Redux-like state management pattern?
 
@@ -28,7 +32,7 @@ On other hand, even if you've never used Redux, React Context API or useReducer 
 
 ## Get started! Part I. Set up app store
 
-Before you got started, you can check the complete working app's codesandbox here: https://codesandbox.io/s/redux-like-state-management-pattern-in-react-118eg & play with code!
+Before you got started, you can check the complete working app's codesandbox here: https://codesandbox.io/s/react-context-usereducer-redux-like-state-management-pattern-l7tpm2 & play with code!
 
 Now we are going to create:
 
@@ -487,31 +491,9 @@ But... in this example/ tutorial we've build only a sync application. We don't n
 
 But in a real-world applications we would deal with async JavaScript, for example when fetching data from database. So now I wanna show you that Redux-like pattern works perfectly with async JS and we don't need to use any external libraries, like Thunk in Redux. And that's beautiful!
 
-So if you want to handle some async functions, you should handle this in app logic, like in example below:
+So if you want to learn how to handle some async functions with the pattern you've learned in this tutorial, check out:
 
-```
-// addTodo.js file
-
-import uniqid from "uniqid";
-
-export default function addTodo(todo, dispatch) {
-  // create a unique id for a new todo:
-  const id = uniqid();
-
-  // return a async function (in our example *addTodoToDatabase()*)
-  // & then return a dispatch function
-  return addTodoToDatabase(todo, id)
-          .then(() => {
-            dispatch({
-              type: "add-todo",
-              payload: {
-                id: id,
-                todo: todo
-              }
-            });
-          })
-```
-
-Remember to dispatch changes in state only when async functions will succeed - thank to that your app state will be always in sync with external database.
+- [tutorial about async Redux-like pattern in React](https://github.com/vadimgierko/async-redux-like-state-management-pattern-in-react#readme), where we will extend the app we've built in this tutorial & connect it to Firebase
+- [the extended app with Firebase & async Redux-like pattern on CodeSandbox](https://codesandbox.io/s/async-react-context-usereducer-redux-like-state-management-pattern-nfiffe)
 
 Happy Coding!
